@@ -51,6 +51,8 @@ public static class BlenderManager {
     public static float CurrentNumber = 0;
     public static bool MoveByNumber => !float.IsNaN(CurrentNumber);
 
+    static Tool lastTool = Tool.None;
+
     private static void Reset() {
         CurrentTransformMode = null;
         CurrentAxisVector = Vector3.zero;
@@ -70,6 +72,7 @@ public static class BlenderManager {
 
         foreach (var transformMode in TransformModes) {
             if (transformMode != CurrentTransformMode && transformMode.ShouldTrigger(Event.current)) {
+                HideToolHandle();
                 CurrentTransformMode?.Cancel();
                 Reset();
                 CurrentTransformMode = transformMode;
@@ -124,9 +127,12 @@ public static class BlenderManager {
         if (BlenderHelper.RevertKeyPressed(Event.current)) {
             CurrentTransformMode.Cancel();
             Reset();
-        } else if (BlenderHelper.ApplyKeyPressed(Event.current)) {
+            RestoreToolHandle();
+        }
+        else if (BlenderHelper.ApplyKeyPressed(Event.current)) {
             CurrentTransformMode.Apply();
             Reset();
+            RestoreToolHandle();
         }
 
         if (Event.current.type == EventType.Repaint) {
@@ -143,8 +149,7 @@ public static class BlenderManager {
         };
     }
 
-    public static void DrawAxisLine(Vector3 origin, Vector3 direction)
-    {
+    public static void DrawAxisLine(Vector3 origin, Vector3 direction) {
         if (direction == Vector3.one || direction == Vector3.zero)
             return;
 
@@ -152,5 +157,19 @@ public static class BlenderManager {
         var startPoint = origin - direction * 1000f;
         var endPoint = origin + direction * 1000f;
         Handles.DrawLine(startPoint, endPoint);
+    }
+
+    static void HideToolHandle() {
+        if (lastTool == Tool.None) {
+            lastTool = Tools.current;
+            Tools.current = Tool.Custom;
+        }
+    }
+
+    static void RestoreToolHandle() {
+        if (lastTool != Tool.None) {
+            Tools.current = lastTool;
+            lastTool = Tool.None;
+        }
     }
 }
