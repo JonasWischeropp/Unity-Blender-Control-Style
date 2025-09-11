@@ -11,6 +11,7 @@ public static class PivotPointPieMenu {
         CreateEntry("Bounding Box Center", "TreeEditor.Material", PivotPoint.BoundingBoxCenter),
         CreateEntry("Active Element", "TreeEditor.Material", PivotPoint.ActiveElement),
         CreateEntry("Media Point", "TreeEditor.Material", PivotPoint.MedianPoint),
+        new PieMenuEntry("Only Location", "TreeEditor.Material", () => BlenderManager.LocationOnly = !BlenderManager.LocationOnly, () => BlenderManager.LocationOnly),
     });
 
     [ClutchShortcut("Pivot Point Pie Menu", typeof(SceneView), KeyCode.Period)]

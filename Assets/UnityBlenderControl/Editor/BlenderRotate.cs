@@ -110,24 +110,20 @@ public class BlenderRotate : BlenderTransformMode {
     }
 
     private void DoRotate(SceneView sv, PerObjectData data, float amount) {
-        Quaternion deltaRotation;
-        switch (BlenderManager.CurrentAxisMode) {
-            case BlenderManager.AxisMode.Local:
-                deltaRotation = Quaternion.AngleAxis(amount, BlenderManager.CurrentAxisVector);
+        Quaternion deltaRotation = BlenderManager.CurrentAxisMode switch {
+            BlenderManager.AxisMode.Local => Quaternion.AngleAxis(amount, BlenderManager.CurrentAxisVector),
+            BlenderManager.AxisMode.Global => Quaternion.AngleAxis(amount, BlenderManager.CurrentAxisVector),
+            BlenderManager.AxisMode.Unlocked => Quaternion.AngleAxis(amount, -sv.camera.transform.forward),
+            _ => Quaternion.identity
+        };
+
+        if (!BlenderManager.LocationOnly) {
+            if (BlenderManager.CurrentAxisMode == BlenderManager.AxisMode.Local) {
                 data.Transform.rotation = data.InitialRotation * deltaRotation;
-                break;
-            case BlenderManager.AxisMode.Global:
-                deltaRotation = Quaternion.AngleAxis(amount, BlenderManager.CurrentAxisVector);
+            }
+            else {
                 data.Transform.rotation = deltaRotation * data.InitialRotation;
-                break;
-            case BlenderManager.AxisMode.Unlocked:
-                deltaRotation = Quaternion.AngleAxis(amount, -sv.camera.transform.forward);
-                data.Transform.rotation = deltaRotation * data.InitialRotation;
-                break;
-            default:
-                deltaRotation = Quaternion.identity;
-                data.Transform.rotation = data.InitialRotation;
-                break;
+            }
         }
 
         if (BlenderManager.CurrentPivotPoint != BlenderManager.PivotPoint.IndividualOrigins) {
